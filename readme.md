@@ -45,6 +45,15 @@ $$
 \text{and the iteration continues \texttt{maxiter} or until} \quad |z_n|^2 \geq R^2.
 $$
 
+First, install dependencies:
+
+```
+pip install imageio[ffmpeg] torch 
+```
+
+
+You can use the basic dataset class as follows:
+
 ```python
 
 from fractal_dataset import FractalImageDataset
@@ -74,6 +83,35 @@ images, labels = dataset.get_batch(batch_size=32)
 dataset.reset()
 
 ```
+
+There is also video dataset class.
+
+```python
+from fractal_video import FractalVideoDataset
+
+dataset = FractalVideoDataset(
+    num_classes=10,
+    num_samples_per_class=10,
+    image_size=512,
+    max_iter=30,
+    R=4.0,
+    device="cuda",
+    train=True,
+    seed=0,
+)
+
+# you can access images and labels by index
+video, label = dataset[0]
+# you can use get_batch method to get batch of videos and labels.
+# I recommend this over dataloader.
+videos, labels = dataset.get_batch(batch_size=32)
+```
+
+
+<p align="center">
+  <img src="figures/video_fract.gif" alt="Fractal Video" width="50%">
+</p>
+
 
 # Example of training
 

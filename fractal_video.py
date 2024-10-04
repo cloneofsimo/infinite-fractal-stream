@@ -402,7 +402,7 @@ def test_fractal_video_dataset():
         for t in range(video.shape[0]):
             frame = video[t].permute(1, 2, 0).cpu().numpy()  # Convert to HWC
             frames.append(frame)
-        video_filename = f"./video_lab_{label}_idx_{i}.mp4"
+        video_filename = f"./video_lab_{label}_idx_{i}.gif"
         imageio.mimwrite(video_filename, frames, fps=10, macro_block_size=None)
         print(f"Saved video: {video_filename}")
 
