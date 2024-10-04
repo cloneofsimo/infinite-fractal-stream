@@ -20,7 +20,7 @@ There is nothing wrong with CIFAR, it is just that sometimes, CIFARs have too li
 
 Problem with using CIFAR or MNIST for testing is that they are good proxy for dealing with overfitting and over-parameterization problem, which is not the case for modern scaling-centric paradigms. All of the language model trainings for example, are mostly all done in single epoch, at worst case, never oversampling 10 epoch per data sources.
 
-We need to have toy problems that are highly non-trivial, and yet light-weight, but diverse, precise, generalizable yet infinite. Parameterized fractals might be the answer.
+We need to have toy problems that are highly non-trivial, light-weight, diverse, precise, generalizable yet infinite in its cardinality. Parameterized fractals might be the answer.
 
 # How to use
 
@@ -30,19 +30,19 @@ $$
 \text{poly0}, \text{poly1}, \text{poly2}, \text{poly3} \sim U(-1, 1) \\
 $$
 
-Given 4 coefficients, we generate infinite number of images. At any point, $\alpha$, $\beta$, $p$ are sampled from uniform distribution, making it latent variable. Generation is in favor of mandelbrot set, with $R$ and $max_iter$ as parameters.
+Given 4 coefficients, we generate infinite number of images. At any point, $\alpha$, $\beta$, $p$ are sampled from uniform distribution, making it latent variable. Generation is in favor of mandelbrot set, with $R$ and `max_iter` as parameters.
 
 $$
 \begin{align*}
 z_0 &= 0, \alpha \sim U(0, 2\pi), \beta \sim U(0, 2\pi), p \sim U(0, 5) \\
 z_{n+1} &= \left( f(z_n) \cdot e^{i \alpha} \right)^p + c \cdot e^{i \beta} \\
 f(z_n) &= P\left( \Re(z_n) \right) + i \Im(z_n) \\
-P(x) &= \text{poly0} + \text{poly1} \cdot x^2 + \text{poly2} \cdot x^3 + \text{poly3} \cdot x^4 \\[10pt]
+P(x) &= \text{poly0} + \text{poly1} \cdot x^2 + \text{poly2} \cdot x^3 + \text{poly3} \cdot x^4 
 \end{align*}
 $$
 
 $$
-\text{and the iteration continues max of iterations or until} \quad |z_n|^2 \geq R^2.
+\text{and the iteration continues \texttt{max\_iter} or until} \quad |z_n|^2 \geq R^2.
 $$
 
 ```python

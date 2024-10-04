@@ -2,8 +2,8 @@
 
 # sweep width and learning rate (lr-rest)
 
-WIDTHS=(128 256 512 1024)
-log_lrs=(-7 -6 -5 -4 -3 -2 -1 0)
+WIDTHS=(256 512 1024)
+log_lrs=(-7 -6 -5 -4)
 
 for width in ${WIDTHS[@]}; do
     for lr in ${log_lrs[@]}; do
