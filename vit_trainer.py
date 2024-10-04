@@ -9,7 +9,9 @@ from model import create_vit_model
 
 import numpy as np
 import random
+
 # from zeroshampoo import Shampoo
+
 
 def get_optimizer(optimizer_type, model, lr_embedding, lr_output, lr_rest):
     embedding_params = list(model.patch_embed.parameters())

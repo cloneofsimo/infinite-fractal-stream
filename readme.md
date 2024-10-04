@@ -42,7 +42,7 @@ P(x) &= \text{poly0} + \text{poly1} \cdot x^2 + \text{poly2} \cdot x^3 + \text{p
 $$
 
 $$
-\text{and the iteration continues \texttt{max\_iter} or until} \quad |z_n|^2 \geq R^2.
+\text{and the iteration continues \texttt{maxiter} or until} \quad |z_n|^2 \geq R^2.
 $$
 
 ```python

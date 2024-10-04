@@ -4,6 +4,7 @@ import triton.language as tl
 from triton.language.extra import libdevice
 import imageio
 
+
 @triton.jit
 def fractal_kernel(
     zr_ptr,
@@ -223,14 +224,28 @@ class FractalDataset:
         # Generate parameter sequences by linear interpolation
         t_steps = torch.linspace(0, 1, T)
 
-        alpha = alpha_start.unsqueeze(1) + (alpha_end - alpha_start).unsqueeze(1) * t_steps.unsqueeze(0)
-        beta = beta_start.unsqueeze(1) + (beta_end - beta_start).unsqueeze(1) * t_steps.unsqueeze(0)
+        alpha = alpha_start.unsqueeze(1) + (alpha_end - alpha_start).unsqueeze(
+            1
+        ) * t_steps.unsqueeze(0)
+        beta = beta_start.unsqueeze(1) + (beta_end - beta_start).unsqueeze(
+            1
+        ) * t_steps.unsqueeze(0)
         p = p_start.unsqueeze(1) + (p_end - p_start).unsqueeze(1) * t_steps.unsqueeze(0)
-        poly0 = poly0_start.unsqueeze(1) + (poly0_end - poly0_start).unsqueeze(1) * t_steps.unsqueeze(0)
-        poly1 = poly1_start.unsqueeze(1) + (poly1_end - poly1_start).unsqueeze(1) * t_steps.unsqueeze(0)
-        poly2 = poly2_start.unsqueeze(1) + (poly2_end - poly2_start).unsqueeze(1) * t_steps.unsqueeze(0)
-        poly3 = poly3_start.unsqueeze(1) + (poly3_end - poly3_start).unsqueeze(1) * t_steps.unsqueeze(0)
-        frequency = frequency_start.unsqueeze(1) + (frequency_end - frequency_start).unsqueeze(1) * t_steps.unsqueeze(0)
+        poly0 = poly0_start.unsqueeze(1) + (poly0_end - poly0_start).unsqueeze(
+            1
+        ) * t_steps.unsqueeze(0)
+        poly1 = poly1_start.unsqueeze(1) + (poly1_end - poly1_start).unsqueeze(
+            1
+        ) * t_steps.unsqueeze(0)
+        poly2 = poly2_start.unsqueeze(1) + (poly2_end - poly2_start).unsqueeze(
+            1
+        ) * t_steps.unsqueeze(0)
+        poly3 = poly3_start.unsqueeze(1) + (poly3_end - poly3_start).unsqueeze(
+            1
+        ) * t_steps.unsqueeze(0)
+        frequency = frequency_start.unsqueeze(1) + (
+            frequency_end - frequency_start
+        ).unsqueeze(1) * t_steps.unsqueeze(0)
 
         # Reshape to (B * T)
         alpha = alpha.reshape(-1)
@@ -341,7 +356,9 @@ class FractalVideoDataset:
         if self.train:
             data_idx += self.total_samples
 
-        video = self.fractal_dataset.video_batch([data_idx], T=self.T, polycoeffs=polycoeffs)
+        video = self.fractal_dataset.video_batch(
+            [data_idx], T=self.T, polycoeffs=polycoeffs
+        )
         video = video[0]  # Shape: (T, 3, H, W)
         video = video.float() / 255.0
 
