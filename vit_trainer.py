@@ -7,34 +7,38 @@ import wandb
 from fractal_dataset import FractalImageDataset
 from model import create_vit_model
 
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
+
 import numpy as np
 import random
 
 # from zeroshampoo import Shampoo
 
 
-def get_optimizer(optimizer_type, model, lr_embedding, lr_output, lr_rest):
+def get_optimizer(optimizer_type, model, lr_embedding, lr_base):
     embedding_params = list(model.patch_embed.parameters())
     output_params = list(model.head.parameters())
     rest_params = []
     for name, param in model.named_parameters():
-        if not any([name.startswith("patch_embed"), name.startswith("head")]):
+        if not any([name.startswith("patch_embed")]):
             rest_params.append(param)
+        else:
+            print(name)
 
     if optimizer_type.lower() == "adam":
         optimizer = torch.optim.Adam(
             [
                 {"params": embedding_params, "lr": lr_embedding},
-                {"params": output_params, "lr": lr_rest},
-                {"params": rest_params, "lr": lr_rest},
+                {"params": output_params, "lr": lr_base},
             ]
         )
     elif optimizer_type.lower() == "shampoo":
         optimizer = Shampoo(
             [
                 {"params": embedding_params, "lr": lr_embedding},
-                {"params": output_params, "lr": lr_rest},
-                {"params": rest_params, "lr": lr_rest},
+                {"params": output_params, "lr": lr_base},
             ]
         )
     else:
@@ -90,9 +94,8 @@ def evaluate(
 @click.option(
     "--lr_embedding", default=1e-4, help="Learning rate for embedding parameters"
 )
-@click.option("--lr_output", default=1e-4, help="Learning rate for output parameters")
 @click.option(
-    "--lr_rest", default=1e-4, help="Learning rate for the rest of the parameters"
+    "--lr_base", default=1e-4, help="Learning rate for the rest of the parameters"
 )
 @click.option(
     "--optimizer_type", default="adam", help="Optimizer type: adam or shampoo"
@@ -102,7 +105,15 @@ def evaluate(
 )
 @click.option("--device", default="cuda", help="Device to use for training")
 @click.option("--run_name", default="fractal_vit_training", help="WandB run name")
+@click.option(
+    "--proj_name",
+    default="vit_sweep_step_1000_val_seed_0_kaiming_normal",
+    help="Project name for wandb",
+)
 @click.option("--seed", default=0, help="Seed for the random number generator")
+@click.option(
+    "--val_seed", default=0, help="Validation seed for the random number generator"
+)
 @click.option(
     "--num_samples_per_class", default=1000, help="Number of samples per class"
 )
@@ -118,13 +129,14 @@ def main(
     depth,
     num_heads,
     lr_embedding,
-    lr_output,
-    lr_rest,
+    lr_base,
     optimizer_type,
     warmup_steps,
     device,
     run_name,
+    proj_name,
     seed,
+    val_seed,
     num_samples_per_class,
     eval_once_every,
 ):
@@ -133,13 +145,11 @@ def main(
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
     np.random.seed(seed)
     random.seed(seed)
 
     wandb.init(
-        project="Fractal_ViT_Classifier",
+        project=proj_name,
         name=run_name,
         entity="simo",
         config={
@@ -153,12 +163,16 @@ def main(
             "depth": depth,
             "num_heads": num_heads,
             "lr_embedding": lr_embedding,
-            "lr_output": lr_output,
-            "lr_rest": lr_rest,
+            "lr_base": lr_base,
             "optimizer_type": optimizer_type,
             "warmup_steps": warmup_steps,
+            "seed": seed,
+            "val_seed": val_seed,
+            "num_samples_per_class": num_samples_per_class,
+            "eval_once_every": eval_once_every,
         },
     )
+
     logger = wandb
 
     model = create_vit_model(
@@ -171,7 +185,7 @@ def main(
     )
     model.to(device)
 
-    optimizer = get_optimizer(optimizer_type, model, lr_embedding, lr_output, lr_rest)
+    optimizer = get_optimizer(optimizer_type, model, lr_embedding, lr_base / embed_dim)
 
     scheduler = get_cosine_schedule_with_warmup(
         optimizer, num_warmup_steps=warmup_steps, num_training_steps=num_steps
@@ -198,7 +212,7 @@ def main(
         R=2,
         device=device,
         train=False,
-        seed=seed,
+        seed=val_seed,
     )
 
     step = 0

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 
 
 class VisionTransformer(nn.Module):
@@ -37,10 +38,14 @@ class VisionTransformer(nn.Module):
             nhead=num_heads,
             dim_feedforward=int(embed_dim * mlp_ratio),
             activation="gelu",
+            dropout=0.0,
         )
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer, num_layers=depth
         )
+
+        self.num_layers = depth
+        self.embed_dim = embed_dim
 
         self.norm = nn.LayerNorm(embed_dim)
 
@@ -52,17 +57,23 @@ class VisionTransformer(nn.Module):
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
         nn.init.trunc_normal_(self.cls_token, std=0.02)
 
-        nn.init.xavier_uniform_(self.patch_embed.weight)
+        nn.init.kaiming_normal_(self.patch_embed.weight)
         if self.patch_embed.bias is not None:
             nn.init.zeros_(self.patch_embed.bias)
 
         for layer in self.transformer_encoder.layers:
-            nn.init.xavier_uniform_(layer.linear1.weight)
-            nn.init.xavier_uniform_(layer.linear2.weight)
-            nn.init.xavier_uniform_(layer.self_attn.in_proj_weight)
+            nn.init.kaiming_normal_(layer.linear1.weight)
+            nn.init.kaiming_normal_(layer.linear2.weight)
+            nn.init.kaiming_normal_(layer.self_attn.in_proj_weight)
             nn.init.constant_(layer.self_attn.in_proj_bias, 0)
+            nn.init.normal_(
+                layer.self_attn.out_proj.weight,
+                mean=0.0,
+                std=0.2 / math.sqrt(self.embed_dim * self.num_layers),
+            )
+            nn.init.constant_(layer.self_attn.out_proj.bias, 0)
 
-        nn.init.xavier_uniform_(self.head.weight)
+        nn.init.zeros_(self.head.weight)
         nn.init.zeros_(self.head.bias)
 
     def forward(self, x):
